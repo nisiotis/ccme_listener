@@ -1,0 +1,53 @@
+#!/bin/sh -e
+DAEMON="/opt/vasilis/ccmelog.py 514"
+DAEMONUSER="root"
+DAEMON_FILE="ccme-listener"
+DAEMON_NAME="ccmelog.py"
+DAEMON_DESC="Cisco CME Listening Service"
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/opt/vasilis"
+
+#test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+d_start () {
+        log_daemon_msg "Starting $DAEMON_DESC"
+        start-stop-daemon --background --name $DAEMON_NAME --start --user $DAEMONUSER --exec $DAEMON
+	touch /var/lock/ccme_service
+        log_end_msg $?
+}
+
+d_stop () {
+        log_daemon_msg "Stopping $DAEMON_DESC"
+        start-stop-daemon --name $DAEMON_NAME --stop --retry 5 --name $DAEMON_NAME
+	rm -f /var/lock/ccme_service
+        log_end_msg $?
+}
+
+case "$1" in
+        start|stop)
+               d_${1}
+               ;;
+
+        restart|reload|force-reload)
+               d_stop
+               d_start
+               ;;
+
+        force-stop)
+               d_stop
+               killall -q $DAEMON_NAME || true
+               sleep 2
+               killall -q -9 $DAEMON_NAME || true
+               ;;
+
+        status)
+               status_of_proc "$DAEMON_NAME" "$DAEMON" "system-wide $DAEMON_NAME" && exit 0 || exit $?
+               ;;
+
+        *)
+               echo "Usage: /etc/init.d/$DAEMON_FILE {start|stop|force-stop|restart|reload|force-reload|status}"
+	       exit 1
+	       ;;
+esac
+exit 0
