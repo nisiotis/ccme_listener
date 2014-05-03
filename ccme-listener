@@ -42,7 +42,7 @@ case "$1" in
                ;;
 
         status)
-               status_of_proc "$DAEMON_NAME" "$DAEMON" "system-wide $DAEMON_NAME" && exit 0 || exit $?
+               status_of_proc "$DAEMON_NAME" "$DAEMON_DESC" "system-wide $DAEMON_NAME" && exit 0 || exit $?
                ;;
 
         *)
